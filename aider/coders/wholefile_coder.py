@@ -105,8 +105,7 @@ class WholeFileCoder(Coder):
             return "\n".join(output)
 
         if fname:
-            full_path = self.allowed_to_edit(fname)
-            if full_path:
+            if full_path := self.allowed_to_edit(fname):
                 edited.add(fname)
                 new_lines = "".join(new_lines)
                 self.io.write_text(full_path, new_lines)
@@ -117,13 +116,10 @@ class WholeFileCoder(Coder):
         if full_path.exists():
             orig_lines = self.io.read_text(full_path).splitlines(keepends=True)
 
-            show_diff = diffs.diff_partial_update(
+            return diffs.diff_partial_update(
                 orig_lines,
                 new_lines,
                 final=True,
             ).splitlines()
-            output = show_diff
         else:
-            output = ["```"] + new_lines + ["```"]
-
-        return output
+            return ["```"] + new_lines + ["```"]
