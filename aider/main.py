@@ -99,11 +99,7 @@ def main(argv=None, input=None, output=None, force_git_root=None):
     if argv is None:
         argv = sys.argv[1:]
 
-    if force_git_root:
-        git_root = force_git_root
-    else:
-        git_root = get_git_root()
-
+    git_root = force_git_root if force_git_root else get_git_root()
     conf_fname = Path(".aider.conf.yml")
 
     default_config_files = [conf_fname.resolve()]  # CWD
@@ -141,6 +137,12 @@ def main(argv=None, input=None, output=None, force_git_root=None):
         metavar="MODEL",
         default=models.GPT4.name,
         help=f"Specify the model to use for the main chat (default: {models.GPT4.name})",
+    )
+    core_group.add_argument(
+        "--skip-model-availability-check",
+        metavar="SKIP_MODEL_AVAILABILITY_CHECK",
+        default=False,
+        help="Override to skip model availability check (default: False)",
     )
     core_group.add_argument(
         "-3",
@@ -465,6 +467,7 @@ def main(argv=None, input=None, output=None, force_git_root=None):
             main_model,
             args.edit_format,
             io,
+            args.skip_model_availability_check,
             ##
             fnames=fnames,
             git_dname=git_dname,

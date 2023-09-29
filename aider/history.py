@@ -1,8 +1,6 @@
 import argparse
 import json
 
-import tiktoken
-
 from aider import models, prompts
 from aider.dump import dump  # noqa: F401
 from aider.sendchat import simple_send_with_retries
@@ -43,12 +41,11 @@ class ChatSummary:
         # Iterate over the messages in reverse order
         for i in range(len(sized) - 1, -1, -1):
             tokens, _msg = sized[i]
-            if tail_tokens + tokens < half_max_tokens:
-                tail_tokens += tokens
-                split_index = i
-            else:
+            if tail_tokens + tokens >= half_max_tokens:
                 break
 
+            tail_tokens += tokens
+            split_index = i
         # Ensure the head ends with an assistant message
         while messages[split_index - 1]["role"] != "assistant" and split_index > 1:
             split_index -= 1
@@ -87,6 +84,8 @@ class ChatSummary:
         ]
 
         summary = simple_send_with_retries(self.model.name, messages)
+        if summary is None:
+            raise ValueError(f"summarizer unexpectedly failed for {self.model.name}")
         summary = prompts.summary_prefix + summary
 
         return [dict(role="user", content=summary)]
